@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1a1a1a">
+<title>Evidence oprav — Palety Vít</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1a1a1a;--bg2:#222;--bg3:#2a2a2a;--bg4:#333;
+  --border:#3a3a3a;--white:#f0f0f0;--dim:#888;--muted:#444;
+  --green:#5dbb6a;--red:#e05555;--yellow:#f0b429;--blue:#4a9eff;
+  --hh:58px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--white);font-family:'Barlow',sans-serif;min-height:100vh;max-width:480px;margin:0 auto;touch-action:manipulation}
+
+/* HEADER */
+.header{height:var(--hh);background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between}
+.logo-wrap{display:flex;align-items:center;gap:12px}
+.logo{display:flex;flex-direction:column;line-height:1}
+.logo-top{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:15px;letter-spacing:5px;color:var(--white)}
+.logo-bot{display:flex;gap:10px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:15px;letter-spacing:5px;color:var(--white)}
+.logo-div{width:1px;height:32px;background:var(--border)}
+.logo-sub{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;letter-spacing:3px;text-transform:uppercase;color:var(--dim)}
+.hclock{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--dim);letter-spacing:2px}
+
+/* TABS */
+.tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:var(--hh);z-index:90}
+.tab{flex:1;padding:12px 4px;background:none;border:none;border-bottom:2px solid transparent;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--dim);cursor:pointer;transition:all .12s}
+.tab.on{color:var(--white);border-bottom-color:var(--white)}
+
+/* SCREENS */
+.screen{display:none;padding:12px 12px 100px}
+.screen.on{display:block}
+
+/* SECTION LABEL */
+.sec-lbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--dim);padding:12px 0 6px}
+
+/* WORKER GRID */
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
+.wbtn{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .12s}
+.wbtn.on{border-color:var(--white);background:var(--bg3)}
+.wbtn:active{transform:scale(.97)}
+.wdot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+.wname{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700}
+
+/* PALLET GRID */
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
+.pbtn{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:13px 10px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--dim);cursor:pointer;text-align:center;transition:all .12s}
+.pbtn.on{background:var(--bg3);color:var(--white);border-color:var(--white)}
+.pbtn:active{transform:scale(.97)}
+
+/* QTY */
+.qty-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px}
+.presets{display:flex;gap:7px;margin-bottom:10px}
+.preset{flex:1;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--dim);cursor:pointer;text-align:center;transition:all .12s}
+.preset.on{background:var(--bg4);color:var(--white);border-color:var(--white)}
+.qty-row{display:flex;align-items:center;gap:8px}
+.qbtn{width:52px;height:52px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-size:28px;font-weight:700;color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.qbtn:active{background:var(--border)}
+.qinp{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--white);font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;padding:10px;text-align:center;outline:none;-moz-appearance:textfield}
+.qinp::-webkit-outer-spin-button,.qinp::-webkit-inner-spin-button{-webkit-appearance:none}
+.qinp:focus{border-color:var(--white)}
+
+/* ADD BTN */
+.add-btn{width:100%;padding:16px;background:var(--white);color:#1a1a1a;border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .12s}
+.add-btn:active{opacity:.85;transform:scale(.99)}
+.add-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.stat-val{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:var(--white)}
+.stat-lbl{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-top:2px}
+
+/* FILTER CHIPS */
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chip{padding:7px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:20px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;color:var(--dim);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .12s}
+.chip.on{background:var(--bg3);color:var(--white);border-color:var(--white)}
+.chip-dot{width:8px;height:8px;border-radius:50%}
+
+/* RECORDS LIST */
+.reclist{display:flex;flex-direction:column;gap:6px}
+.recitem{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px}
+.rec-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.rec-info{flex:1;min-width:0}
+.rec-main{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700}
+.rec-meta{font-size:11px;color:var(--dim);margin-top:1px}
+.rec-qty{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--white);margin-right:8px}
+.rec-del{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px 6px;border-radius:6px}
+.rec-del:active{background:var(--bg3);color:var(--red)}
+.empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px}
+
+/* REPORT */
+.rep-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
+.rep-title{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.rep-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+.rep-row:last-child{border-bottom:none}
+.rep-who{display:flex;align-items:center;gap:8px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700}
+.rep-dot{width:10px;height:10px;border-radius:50%}
+.rep-val{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900}
+.rep-bar-wrap{flex:1;height:4px;background:var(--bg3);border-radius:2px;margin:0 12px;overflow:hidden}
+.rep-bar{height:100%;background:var(--white);border-radius:2px}
+
+.exp-btn{width:100%;padding:13px;background:var(--bg2);border:1px solid var(--border);border-radius:9px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);cursor:pointer;margin-bottom:8px;transition:all .12s}
+.exp-btn:active{background:var(--bg3);color:var(--white)}
+
+/* UNDO BANNER */
+.undo{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 24px);max-width:456px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:none;align-items:center;gap:10px;z-index:200;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+.undo.on{display:flex}
+.undo-text{flex:1;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700}
+.undo-bar-wrap{position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 10px 10px;background:var(--bg4);overflow:hidden}
+.undo-bar{height:100%;background:var(--white);border-radius:0 0 10px 10px;transition:width linear}
+.ubtn{background:none;border:1px solid var(--border);border-radius:7px;padding:7px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--white);cursor:pointer}
+.ubtn:active{background:var(--bg4)}
+
+/* BOTTOM BAR */
+.bbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--bg2);border-top:1px solid var(--border);padding:10px 12px;z-index:100}
+
+/* SYNC BADGE */
+.sync-badge{display:none;background:var(--yellow);color:#1a1a1a;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;padding:3px 8px;border-radius:4px;margin-left:8px}
+.sync-badge.on{display:inline-block}
+
+/* TOAST */
+.toast{position:fixed;top:66px;left:50%;transform:translateX(-50%);background:var(--green);color:#0a1a0a;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;letter-spacing:1px;padding:11px 22px;border-radius:8px;z-index:300;opacity:0;transition:opacity .25s;white-space:nowrap;pointer-events:none}
+.toast.on{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-wrap">
+    <div class="logo">
+      <div class="logo-top">PALETY</div>
+      <div class="logo-bot"><span>VÍ</span><span>T</span></div>
+    </div>
+    <div class="logo-div"></div>
+    <div class="logo-sub">Opravna</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span class="sync-badge" id="sync-badge">⟳ sync</span>
+    <div class="hclock" id="clock">00:00:00</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab on" onclick="switchTab('zadani',this)">➕ Zadání</button>
+  <button class="tab" onclick="switchTab('prehled',this)">📋 Přehled</button>
+  <button class="tab" onclick="switchTab('report',this)">📊 Report</button>
+</div>
+
+<!-- ZADÁNÍ -->
+<div class="screen on" id="screen-zadani">
+  <div class="sec-lbl">Pracovník</div>
+  <div class="wgrid" id="wgrid"></div>
+
+  <div class="sec-lbl">Typ palety</div>
+  <div class="pgrid" id="pgrid"></div>
+
+  <div id="atypicka-note" style="display:none;margin-bottom:4px">
+    <div class="sec-lbl">Popis atypické palety</div>
+    <input class="qinp" type="text" id="atypicka-inp" placeholder="Napiš typ palety…" style="width:100%;font-size:16px;text-align:left;padding:12px 14px;margin-bottom:4px">
+  </div>
+
+  <div class="sec-lbl">Počet kusů</div>
+  <div class="qty-wrap">
+    <div class="presets" id="presets" style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px">
+      <button class="preset" onclick="setPreset(8)">8</button>
+      <button class="preset" onclick="setPreset(9)">9</button>
+      <button class="preset" onclick="setPreset(15)">15</button>
+      <button class="preset" onclick="setPreset(17)">17</button>
+      <button class="preset" onclick="setPreset(18)">18</button>
+      <button class="preset" onclick="setPreset(21)">21</button>
+      <button class="preset" onclick="setPreset(25)">25</button>
+      <button class="preset" onclick="setPreset(29)">29</button>
+    </div>
+    <div class="qty-row">
+      <button class="qbtn" onclick="addQty(-1)">−</button>
+      <input class="qinp" type="number" id="qinp" placeholder="0" min="1" inputmode="numeric" oninput="onManualQty(this.value)">
+      <button class="qbtn" onclick="addQty(1)">+</button>
+    </div>
+  </div>
+
+  <button class="add-btn" id="add-btn" onclick="pridat()">✓ Přidat záznam</button>
+</div>
+
+<!-- PŘEHLED -->
+<div class="screen" id="screen-prehled">
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-val" id="stat-dnes">0</div>
+      <div class="stat-lbl">Dnes ks</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="stat-zaznamy">0</div>
+      <div class="stat-lbl">Záznamy</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="stat-celkem">0</div>
+      <div class="stat-lbl">Celkem ks</div>
+    </div>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="reclist" id="reclist"></div>
+</div>
+
+<!-- REPORT -->
+<div class="screen" id="screen-report">
+  <div class="rep-card">
+    <div class="rep-title">Pracovníci — dnes</div>
+    <div id="rep-workers"></div>
+  </div>
+  <div class="rep-card">
+    <div class="rep-title">Typy palet — dnes</div>
+    <div id="rep-types"></div>
+  </div>
+  <button class="exp-btn" onclick="exportCSVDnes()">⬇ Export CSV — dnes</button>
+  <button class="exp-btn" onclick="exportCSVVse()">⬇ Export CSV — vše záznamy</button>
+</div>
+
+<!-- UNDO -->
+<div class="undo" id="undo">
+  <div style="flex:1">
+    <div class="undo-text" id="undo-text"></div>
+    <div class="undo-bar-wrap"><div class="undo-bar" id="undo-bar"></div></div>
+  </div>
+  <button class="ubtn" onclick="doUndo()">↩ Zpět</button>
+  <button class="ubtn" onclick="hideUndo()" style="color:var(--dim)">✕</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const WORKERS = [
+  {name:'Radek',  color:'#2ecc40'},
+  {name:'Laďa',   color:'#f5c842'},
+  {name:'Martin', color:'#ffffff'},
+  {name:'Zavadil',color:'#4a9eff'},
+  {name:'Honza',  color:'#9b59b6'},
+];
+
+const PALLETS = ['EUR A','EUR B - lis.','EUR B - dřevo','STD05','STD10','STD15','100x120','100x120 rámové','Atypická'];
+
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzYvvhzhtaxp4TKEwL4l4Km7Jv6M63OUInFVV4neJVECGxIfHu6hP6VlcKrc_gPUng7Yg/exec';
+const UNDO_SEC = 60;
+
+let selWorker = null, selPallet = null, qty = 1;
+let records = JSON.parse(localStorage.getItem('opravy_records')||'[]');
+let pending = JSON.parse(localStorage.getItem('opravy_pending')||'[]');
+let filterW = 'all';
+let undoTimer = null, lastRec = null;
+
+const deviceId = localStorage.getItem('device_id')||(() => {
+  const id='DEV-'+Math.random().toString(36).substr(2,8).toUpperCase();
+  localStorage.setItem('device_id',id); return id;
+})();
+
+// CLOCK
+function tick(){
+  const n=new Date();
+  document.getElementById('clock').textContent=[n.getHours(),n.getMinutes(),n.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');
+}
+tick(); setInterval(tick,1000);
+
+// TABS
+function switchTab(id,btn){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('screen-'+id).classList.add('on');
+  btn.classList.add('on');
+  if(id==='prehled') renderPrehled();
+  if(id==='report') renderReport();
+}
+
+// RENDER WORKERS
+function renderWorkers(){
+  document.getElementById('wgrid').innerHTML = WORKERS.map((w,i)=>`
+    <button class="wbtn${selWorker===i?' on':''}" onclick="pickWorker(${i})">
+      <div class="wdot" style="background:${w.color}"></div>
+      <span class="wname" style="color:${w.color}">${w.name}</span>
+    </button>`).join('');
+}
+
+// RENDER PALLETS
+function renderPallets(){
+  document.getElementById('pgrid').innerHTML = PALLETS.map((p,i)=>`
+    <button class="pbtn${selPallet===i?' on':''}" onclick="pickPallet(${i})">${p}</button>`).join('');
+}
+
+function pickWorker(i){ selWorker=i; renderWorkers(); }
+function pickPallet(i){
+  selPallet=i;
+  renderPallets();
+  const isAtyp = PALLETS[i] === 'Atypická';
+  document.getElementById('atypicka-note').style.display = isAtyp ? 'block' : 'none';
+  if(!isAtyp) document.getElementById('atypicka-inp').value='';
+}
+
+function setPreset(n){
+  qty=n;
+  document.getElementById('qinp').value=n;
+  document.querySelectorAll('.preset').forEach(b=>b.classList.toggle('on',parseInt(b.textContent)===n));
+}
+
+function onManualQty(v){
+  const n=parseInt(v);
+  if(n>0){qty=n; document.querySelectorAll('.preset').forEach(b=>b.classList.remove('on'));}
+}
+
+function addQty(n){
+  qty=Math.max(1,(qty||1)+n);
+  document.getElementById('qinp').value=qty;
+  document.querySelectorAll('.preset').forEach(b=>b.classList.toggle('on',parseInt(b.textContent)===qty));
+}
+
+// ADD RECORD
+function pridat(){
+  if(selWorker===null){toast('⚠ Vyber pracovníka!');return;}
+  if(selPallet===null){toast('⚠ Vyber typ palety!');return;}
+  const manVal=parseInt(document.getElementById('qinp').value);
+  if(manVal>0) qty=manVal;
+  if(!qty||qty<1){toast('⚠ Zadej počet kusů!');return;}
+
+  const now=Date.now();
+  if(lastRec&&(now-lastRec.ts)<2000&&lastRec.worker===selWorker&&lastRec.pallet===selPallet&&lastRec.qty===qty){
+    toast('⚠ Duplicitní klik ignorován'); return;
+  }
+
+  const d=new Date();
+  const rec={
+    id:now+'-'+Math.random().toString(36).substr(2,5),
+    ts:now,
+    date:todayStr(),
+    time:[d.getHours(),d.getMinutes(),d.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':'),
+    worker:selWorker,
+    workerName:WORKERS[selWorker].name,
+    workerColor:WORKERS[selWorker].color,
+    pallet:selPallet,
+    palletType:PALLETS[selPallet]==='Atypická' ? ('Atypická: '+(document.getElementById('atypicka-inp').value||'?')) : PALLETS[selPallet],
+    qty,
+    deviceId,
+  };
+
+  records.unshift(rec);
+  lastRec={ts:now,worker:selWorker,pallet:selPallet,qty};
+  save();
+  syncToSheets(rec);
+  if(window.saveToFirebase) window.saveToFirebase(rec);
+  showUndo(rec);
+  toast(`✓ ${rec.workerName} · ${rec.palletType} · ${rec.qty} ks`);
+  if(navigator.vibrate) navigator.vibrate(60);
+  qty=1;
+  document.getElementById('qinp').value='';
+  document.querySelectorAll('.preset').forEach(b=>b.classList.remove('on'));
+}
+
+// SYNC
+async function syncToSheets(rec){
+  try{
+    const encoded=encodeURIComponent(JSON.stringify(rec));
+    const img=new Image();
+    img.src=SHEETS_URL+'?data='+encoded;
+  }catch(e){
+    pending.push(rec);
+    localStorage.setItem('opravy_pending',JSON.stringify(pending));
+    updateSyncBadge();
+  }
+}
+
+async function syncPending(){
+  if(!navigator.onLine||!pending.length) return;
+  for(const rec of [...pending]){
+    try{
+      const encoded=encodeURIComponent(JSON.stringify(rec));
+      const img=new Image();
+      img.src=SHEETS_URL+'?data='+encoded;
+      pending=pending.filter(r=>r.id!==rec.id);
+    }catch(e){break;}
+  }
+  localStorage.setItem('opravy_pending',JSON.stringify(pending));
+  updateSyncBadge();
+}
+
+function updateSyncBadge(){
+  const b=document.getElementById('sync-badge');
+  if(pending.length>0){b.classList.add('on');b.textContent=`⟳ ${pending.length}`;} 
+  else b.classList.remove('on');
+}
+
+// UNDO
+function showUndo(rec){
+  clearTimeout(undoTimer);
+  const el=document.getElementById('undo');
+  document.getElementById('undo-text').textContent=`${rec.workerName} · ${rec.palletType} · ${rec.qty} ks`;
+  const bar=document.getElementById('undo-bar');
+  bar.style.transition='none'; bar.style.width='100%';
+  el.classList.add('on');
+  el._rec=rec;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    bar.style.transition=`width ${UNDO_SEC}s linear`; bar.style.width='0%';
+  }));
+  undoTimer=setTimeout(hideUndo,UNDO_SEC*1000);
+}
+
+function doUndo(){
+  const rec=document.getElementById('undo')._rec;
+  if(!rec) return;
+  records=records.filter(r=>r.id!==rec.id);
+  pending=pending.filter(r=>r.id!==rec.id);
+  save(); updateSyncBadge(); hideUndo();
+  toast('↩ Záznam vrácen');
+  renderPrehled(); renderReport();
+}
+
+function hideUndo(){
+  clearTimeout(undoTimer);
+  document.getElementById('undo').classList.remove('on');
+}
+
+// PŘEHLED
+function renderPrehled(){
+  const today=todayStr();
+  const dnes=records.filter(r=>r.date===today);
+  document.getElementById('stat-dnes').textContent=dnes.reduce((s,r)=>s+r.qty,0);
+  document.getElementById('stat-zaznamy').textContent=dnes.length;
+  document.getElementById('stat-celkem').textContent=records.reduce((s,r)=>s+r.qty,0);
+
+  // Chips
+  document.getElementById('chips').innerHTML=
+    `<button class="chip${filterW==='all'?' on':''}" onclick="setFilter('all',this)">Vše</button>`+
+    WORKERS.map((w,i)=>`
+      <button class="chip${filterW===i?' on':''}" onclick="setFilter(${i},this)">
+        <div class="chip-dot" style="background:${w.color}"></div>${w.name}
+      </button>`).join('');
+
+  const filtered=filterW==='all'?records:records.filter(r=>r.worker===filterW);
+  const el=document.getElementById('reclist');
+  if(!filtered.length){el.innerHTML='<div class="empty">Žádné záznamy zatím.</div>';return;}
+  el.innerHTML=filtered.map(r=>`
+    <div class="recitem">
+      <div class="rec-dot" style="background:${r.workerColor}"></div>
+      <div class="rec-info">
+        <div class="rec-main">${r.workerName} · ${r.palletType}</div>
+        <div class="rec-meta">${r.date===today?r.time:r.date+' '+r.time}</div>
+      </div>
+      <div class="rec-qty">${r.qty}</div>
+      <button class="rec-del" onclick="smazat('${r.id}')">✕</button>
+    </div>`).join('');
+}
+
+function setFilter(v,btn){
+  filterW=v==='all'?'all':parseInt(v);
+  renderPrehled();
+}
+
+function smazat(id){
+  records=records.filter(r=>r.id!==id);
+  save(); renderPrehled(); renderReport();
+  toast('🗑 Smazáno');
+}
+
+// REPORT
+function renderReport(){
+  const today=todayStr();
+  const dnes=records.filter(r=>r.date===today);
+
+  // Workers
+  const byW={};
+  WORKERS.forEach((w,i)=>byW[i]={name:w.name,color:w.color,qty:0});
+  dnes.forEach(r=>byW[r.worker].qty+=r.qty);
+  const wArr=Object.values(byW).filter(w=>w.qty>0).sort((a,b)=>b.qty-a.qty);
+  const maxW=wArr.length?wArr[0].qty:1;
+  document.getElementById('rep-workers').innerHTML=wArr.length?wArr.map(w=>`
+    <div class="rep-row">
+      <div class="rep-who"><div class="rep-dot" style="background:${w.color}"></div>${w.name}</div>
+      <div class="rep-bar-wrap"><div class="rep-bar" style="width:${Math.round(w.qty/maxW*100)}%"></div></div>
+      <div class="rep-val">${w.qty}</div>
+    </div>`).join(''):'<div class="empty">Žádné záznamy dnes.</div>';
+
+  // Types
+  const byT={};
+  PALLETS.forEach(p=>byT[p]=0);
+  dnes.forEach(r=>byT[r.palletType]+=r.qty);
+  const tArr=Object.entries(byT).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  const maxT=tArr.length?tArr[0][1]:1;
+  document.getElementById('rep-types').innerHTML=tArr.length?tArr.map(([k,v])=>`
+    <div class="rep-row">
+      <div class="rep-who">${k}</div>
+      <div class="rep-bar-wrap"><div class="rep-bar" style="width:${Math.round(v/maxT*100)}%"></div></div>
+      <div class="rep-val">${v}</div>
+    </div>`).join(''):'<div class="empty">Žádné záznamy dnes.</div>';
+}
+
+// CSV EXPORT
+function exportCSVDnes(){exportCSV(records.filter(r=>r.date===todayStr()),`opravy_${todayStr()}.csv`);}
+function exportCSVVse(){exportCSV(records,`opravy_export_${todayStr()}.csv`);}
+function exportCSV(data,filename){
+  if(!data.length){toast('⚠ Žádné záznamy k exportu');return;}
+  const csv=['date,time,worker,pallet_type,qty,device_id',...data.map(r=>`${r.date},${r.time},"${r.workerName}",${r.palletType},${r.qty},${r.deviceId}`)].join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download=filename; a.click();
+  toast(`✓ Exportováno: ${filename}`);
+}
+
+// UTILS
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function save(){localStorage.setItem('opravy_records',JSON.stringify(records));}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2500);}
+
+// INIT
+renderWorkers();
+renderPallets();
+renderPrehled();
+renderReport();
+updateSyncBadge();
+setInterval(syncPending,30000);
+window.addEventListener('online',()=>{if(pending.length)syncPending();});
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDIEzhaFjq5JvgGd3rdxXUdYyTHKmS85S4",
+  authDomain: "evidence-oprav.firebaseapp.com",
+  projectId: "evidence-oprav",
+  storageBucket: "evidence-oprav.firebasestorage.app",
+  messagingSenderId: "1059190480737",
+  appId: "1:1059190480737:web:a50696e0317ca1eb9eef20"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Real-time sync — načti záznamy z Firebase
+const q = query(collection(db, "opravy"), orderBy("ts", "desc"));
+onSnapshot(q, (snapshot) => {
+  const data = [];
+  snapshot.forEach(d => data.push({...d.data(), _fbId: d.id}));
+  records = data;
+  localStorage.setItem('opravy_records', JSON.stringify(records));
+  renderPrehled();
+  renderReport();
+});
+
+// Uložit záznam do Firebase
+window.saveToFirebase = async function(rec) {
+  try {
+    await addDoc(collection(db, "opravy"), rec);
+  } catch(e) {
+    console.error('Firebase save error:', e);
+  }
+};
+
+// Smazat záznam z Firebase
+window.deleteFromFirebase = async function(fbId) {
+  try {
+    await deleteDoc(doc(db, "opravy", fbId));
+  } catch(e) {
+    console.error('Firebase delete error:', e);
+  }
+};
+</script>
+</body>
+</html>
