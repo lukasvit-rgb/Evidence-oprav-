@@ -109,6 +109,14 @@ html,body{background:var(--bg);color:var(--white);font-family:'Barlow',sans-seri
 .rep-val{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900}
 .rep-bar-wrap{flex:1;height:4px;background:var(--bg3);border-radius:2px;margin:0 12px;overflow:hidden}
 .rep-bar{height:100%;background:var(--white);border-radius:2px}
+.rep-period-toggle{display:flex;gap:6px;margin-bottom:10px}
+.rep-period-btn{flex:1;padding:8px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);cursor:pointer}
+.rep-period-btn.on{background:var(--bg3);color:var(--white);border-color:var(--white)}
+.rep-nav{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.rep-nav-btn{width:40px;height:40px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-size:18px;color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rep-nav-btn:active{background:var(--bg3)}
+.rep-nav-btn:disabled{opacity:.3;cursor:not-allowed}
+.rep-nav-label{flex:1;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;letter-spacing:.5px}
 
 .exp-btn{width:100%;padding:13px;background:var(--bg2);border:1px solid var(--border);border-radius:9px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);cursor:pointer;margin-bottom:8px;transition:all .12s}
 .exp-btn:active{background:var(--bg3);color:var(--white)}
@@ -230,12 +238,19 @@ html,body{background:var(--bg);color:var(--white);font-family:'Barlow',sans-seri
 
 <!-- REPORT -->
 <div class="screen" id="screen-report">
+  <div class="rep-period-toggle" id="rep-period-toggle"></div>
+  <div class="rep-nav">
+    <button class="rep-nav-btn" onclick="repNav(-1)">◀</button>
+    <div class="rep-nav-label" id="rep-nav-label"></div>
+    <button class="rep-nav-btn" id="rep-nav-next" onclick="repNav(1)">▶</button>
+  </div>
+  <div class="chips" id="rep-chips"></div>
   <div class="rep-card">
-    <div class="rep-title">Pracovníci — dnes</div>
+    <div class="rep-title">Pracovníci</div>
     <div id="rep-workers"></div>
   </div>
   <div class="rep-card">
-    <div class="rep-title">Typy palet — dnes</div>
+    <div class="rep-title">Typy palet</div>
     <div id="rep-types"></div>
   </div>
   <button class="exp-btn" onclick="exportCSVDnes()">⬇ Export CSV — dnes</button>
@@ -271,6 +286,7 @@ let selWorker = null, selPallet = null, qty = 1;
 let records = JSON.parse(localStorage.getItem('opravy_records')||'[]');
 let pending = JSON.parse(localStorage.getItem('opravy_pending')||'[]');
 let filterW = 'all';
+let repPeriod = 'day', repOffset = 0, repFilterW = 'all';
 let undoTimer = null, lastRec = null;
 
 const deviceId = localStorage.getItem('device_id')||(() => {
@@ -505,14 +521,79 @@ function smazat(id){
 }
 
 // REPORT
+const WEEKDAY_CS=['Ne','Po','Út','St','Čt','Pá','So'];
+function pad2(n){return String(n).padStart(2,'0');}
+function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
+function dateToStr(d){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
+function mondayOf(d){const day=(d.getDay()+6)%7;return addDays(d,-day);}
+
+function repDayLabel(d,offset){
+  const wd=WEEKDAY_CS[d.getDay()];
+  const ds=pad2(d.getDate())+'. '+pad2(d.getMonth()+1)+'. '+d.getFullYear();
+  if(offset===0) return 'Dnes · '+wd+' '+ds;
+  if(offset===-1) return 'Včera · '+wd+' '+ds;
+  return wd+' '+ds;
+}
+
+function repWeekLabel(mon,sun,offset){
+  const f=d=>pad2(d.getDate())+'.'+pad2(d.getMonth()+1)+'.';
+  const range=f(mon)+' – '+f(sun)+sun.getFullYear();
+  if(offset===0) return 'Tento týden · '+range;
+  if(offset===-1) return 'Minulý týden · '+range;
+  return range;
+}
+
+function repRange(){
+  const today=new Date();
+  today.setHours(0,0,0,0);
+  if(repPeriod==='day'){
+    const d=addDays(today,repOffset);
+    const s=dateToStr(d);
+    return {start:s,end:s,label:repDayLabel(d,repOffset)};
+  }
+  const curMonday=mondayOf(today);
+  const wMonday=addDays(curMonday,repOffset*7);
+  const wSunday=addDays(wMonday,6);
+  return {start:dateToStr(wMonday),end:dateToStr(wSunday),label:repWeekLabel(wMonday,wSunday,repOffset)};
+}
+
+function repNav(dir){
+  if(repOffset+dir>0) return;
+  repOffset+=dir;
+  renderReport();
+}
+
+function repSetPeriod(p){
+  repPeriod=p; repOffset=0;
+  renderReport();
+}
+
+function repSetFilter(v){
+  repFilterW=v==='all'?'all':parseInt(v);
+  renderReport();
+}
+
 function renderReport(){
-  const today=todayStr();
-  const dnes=records.filter(r=>r.date===today);
+  const {start,end,label}=repRange();
+  const scoped=records.filter(r=>r.date>=start && r.date<=end && (repFilterW==='all'||r.worker===repFilterW));
+
+  document.getElementById('rep-period-toggle').innerHTML=['day','week'].map(p=>`
+    <button class="rep-period-btn${repPeriod===p?' on':''}" onclick="repSetPeriod('${p}')">${p==='day'?'Den':'Týden'}</button>`).join('');
+
+  document.getElementById('rep-nav-label').textContent=label;
+  document.getElementById('rep-nav-next').disabled=repOffset>=0;
+
+  document.getElementById('rep-chips').innerHTML=
+    `<button class="chip${repFilterW==='all'?' on':''}" onclick="repSetFilter('all')">Vše</button>`+
+    WORKERS.map((w,i)=>`
+      <button class="chip${repFilterW===i?' on':''}" onclick="repSetFilter(${i})">
+        <div class="chip-dot" style="background:${w.color}"></div>${w.name}
+      </button>`).join('');
 
   // Workers
   const byW={};
   WORKERS.forEach((w,i)=>byW[i]={name:w.name,color:w.color,qty:0});
-  dnes.forEach(r=>byW[r.worker].qty+=r.qty);
+  scoped.forEach(r=>byW[r.worker].qty+=r.qty);
   const wArr=Object.values(byW).filter(w=>w.qty>0).sort((a,b)=>b.qty-a.qty);
   const maxW=wArr.length?wArr[0].qty:1;
   document.getElementById('rep-workers').innerHTML=wArr.length?wArr.map(w=>`
@@ -520,12 +601,12 @@ function renderReport(){
       <div class="rep-who"><div class="rep-dot" style="background:${w.color}"></div>${w.name}</div>
       <div class="rep-bar-wrap"><div class="rep-bar" style="width:${Math.round(w.qty/maxW*100)}%"></div></div>
       <div class="rep-val">${w.qty}</div>
-    </div>`).join(''):'<div class="empty">Žádné záznamy dnes.</div>';
+    </div>`).join(''):'<div class="empty">Žádné záznamy.</div>';
 
   // Types
   const byT={};
   PALLETS.forEach(p=>byT[p]=0);
-  dnes.forEach(r=>byT[r.palletType]+=r.qty);
+  scoped.forEach(r=>{const pt=r.palletType.startsWith('Atypická')?'Atypická':r.palletType; if(byT[pt]!==undefined) byT[pt]+=r.qty;});
   const tArr=Object.entries(byT).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
   const maxT=tArr.length?tArr[0][1]:1;
   document.getElementById('rep-types').innerHTML=tArr.length?tArr.map(([k,v])=>`
@@ -533,7 +614,7 @@ function renderReport(){
       <div class="rep-who">${k}</div>
       <div class="rep-bar-wrap"><div class="rep-bar" style="width:${Math.round(v/maxT*100)}%"></div></div>
       <div class="rep-val">${v}</div>
-    </div>`).join(''):'<div class="empty">Žádné záznamy dnes.</div>';
+    </div>`).join(''):'<div class="empty">Žádné záznamy.</div>';
 }
 
 // CSV EXPORT
