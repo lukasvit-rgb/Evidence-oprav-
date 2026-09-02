@@ -1,5 +1,5 @@
-// Service Worker v2 - force update
-const CACHE = 'evidence-oprav-v2';
+// Service Worker v3 - force update, network-first
+const CACHE = 'evidence-oprav-v3';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

@@ -281,6 +281,10 @@ const WORKERS = [
 
 const PALLETS = ['EUR A','EUR B - lis.','EUR B - dřevo','STD05','STD10','STD15','100x120','100x120 rámové','Atypická','Bedna'];
 
+// Verze appky - pri kazdem smysluplnem nasazeni zvysit, appka pak sama detekuje
+// novou verzi na serveru a potichu se obnovi (viz checkForUpdate nize).
+const APP_VERSION = '2026-09-02-1';
+
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzYvvhzhtaxp4TKEwL4l4Km7Jv6M63OUInFVV4neJVECGxIfHu6hP6VlcKrc_gPUng7Yg/exec';
 const UNDO_SEC = 2;
 
@@ -571,13 +575,13 @@ function repSetPeriod(p){
 }
 
 function repSetFilter(v){
-  repFilterW=v==='all'?'all':parseInt(v);
+  repFilterW=v;
   renderReport();
 }
 
 function renderReport(){
   const {start,end,label}=repRange();
-  const scoped=records.filter(r=>r.date>=start && r.date<=end && (repFilterW==='all'||r.worker===repFilterW));
+  const scoped=records.filter(r=>r.date>=start && r.date<=end && (repFilterW==='all'||r.workerName===repFilterW));
 
   document.getElementById('rep-period-toggle').innerHTML=['day','week'].map(p=>`
     <button class="rep-period-btn${repPeriod===p?' on':''}" onclick="repSetPeriod('${p}')">${p==='day'?'Den':'Týden'}</button>`).join('');
@@ -587,15 +591,19 @@ function renderReport(){
 
   document.getElementById('rep-chips').innerHTML=
     `<button class="chip${repFilterW==='all'?' on':''}" onclick="repSetFilter('all')">Vše</button>`+
-    WORKERS.map((w,i)=>`
-      <button class="chip${repFilterW===i?' on':''}" onclick="repSetFilter(${i})">
+    WORKERS.map(w=>`
+      <button class="chip${repFilterW===w.name?' on':''}" onclick="repSetFilter('${w.name.replace(/'/g,"\\'")}')">
         <div class="chip-dot" style="background:${w.color}"></div>${w.name}
       </button>`).join('');
 
   // Workers
   const byW={};
-  WORKERS.forEach((w,i)=>byW[i]={name:w.name,color:w.color,qty:0});
-  scoped.forEach(r=>byW[r.worker].qty+=r.qty);
+  WORKERS.forEach(w=>byW[w.name]={name:w.name,color:w.color,qty:0});
+  scoped.forEach(r=>{
+    const key=r.workerName || ('Neznámý (#'+r.worker+')');
+    if(!byW[key]) byW[key]={name:key,color:'#888888',qty:0};
+    byW[key].qty+=r.qty;
+  });
   const wArr=Object.values(byW).filter(w=>w.qty>0).sort((a,b)=>b.qty-a.qty);
   const maxW=wArr.length?wArr[0].qty:1;
   document.getElementById('rep-workers').innerHTML=wArr.length?wArr.map(w=>`
@@ -644,6 +652,29 @@ renderReport();
 updateSyncBadge();
 setInterval(syncPending,30000);
 window.addEventListener('online',()=>{if(pending.length)syncPending();});
+
+// AUTO-UPDATE: appka je nainstalovana jako PWA a bezi klidne dny bez restartu,
+// takze si sama musi hlidat, jestli na serveru neni novejsi verze (jinak by
+// telefon dal zapisoval pod starym kodem/starymi jmeny pracovniku donekonecna).
+// Kontrola je tichá - kdyz najde novou verzi, stranku proste obnovi (reload).
+async function checkForUpdate(){
+  try {
+    const res = await fetch(location.pathname + '?_v=' + Date.now(), {cache:'no-store'});
+    if(!res.ok) return;
+    const html = await res.text();
+    const m = html.match(/const APP_VERSION\s*=\s*'([^']+)'/);
+    if(m && m[1] && m[1] !== APP_VERSION){
+      console.log('Nová verze appky (' + m[1] + ', mám ' + APP_VERSION + ') – obnovuji…');
+      location.reload();
+    }
+  } catch(e) {
+    // offline nebo výpadek sítě - žádná chyba, zkusíme to při dalším pokusu
+  }
+}
+setInterval(checkForUpdate, 5*60*1000);
+document.addEventListener('visibilitychange', () => { if(!document.hidden) checkForUpdate(); });
+window.addEventListener('focus', checkForUpdate);
+checkForUpdate();
 </script>
 
 <script type="module">
